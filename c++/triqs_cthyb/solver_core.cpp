@@ -22,6 +22,7 @@
  ******************************************************************************/
 #include "./solver_core.hpp"
 #include "./qmc_data.hpp"
+#include "./wl_data.hpp"
 
 #include <triqs/utility/callbacks.hpp>
 #include <triqs/utility/exceptions.hpp>
@@ -52,6 +53,7 @@
 #endif
 #include "./measures/util.hpp"
 
+
 namespace triqs_cthyb {
 
   struct index_visitor {
@@ -79,6 +81,8 @@ namespace triqs_cthyb {
 
     solve_parameters = solve_parameters_;
     solve_parameters_t params(solve_parameters_);
+
+//    std::cout<<"wang landau lambda: "<<params.wang_landau_lambda<<std::endl;
 
     // Merge constr_params and solve_params
     //params_t params(constr_parameters, solve_parameters);

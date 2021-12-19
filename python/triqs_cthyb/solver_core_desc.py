@@ -404,6 +404,17 @@ c.add_member(c_name = "verbosity",
              doc = r"""Verbosity level
      default: 3 on MPI rank 0, 0 otherwise.""")
 
+c.add_member(c_name = "wang_landau_cycle",
+             c_type = "bool",
+             initializer = """ false """,
+             doc = r"""wang landau cycle?""")
+
+c.add_member(c_name = "wang_landau_lambda",
+             c_type = "double",
+             initializer = """ 2.0 """,
+             doc = r"""wang landau lambda ?""")
+
+
 c.add_member(c_name = "move_shift",
              c_type = "bool",
              initializer = """ true """,

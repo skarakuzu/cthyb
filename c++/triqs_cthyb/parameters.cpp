@@ -96,6 +96,11 @@ namespace triqs_cthyb {
     h5_write(grp, "max_time", sp.max_time);
     h5_write(grp, "verbosity", sp.verbosity);
 
+
+/* here I change*/
+    h5_write(grp, "wang_landau_cycle", sp.wang_landau_cycle);
+    h5_write(grp, "wang_landau_lambda", sp.wang_landau_lambda);
+
     h5_write(grp, "move_shift", sp.move_shift);
     h5_write(grp, "move_double", sp.move_double);
     h5_write(grp, "use_trace_estimator", sp.use_trace_estimator);
@@ -162,6 +167,10 @@ namespace triqs_cthyb {
     h5_read(grp, "random_name", sp.random_name);
     h5_read(grp, "max_time", sp.max_time);
     h5_read(grp, "verbosity", sp.verbosity);
+
+/* here I change*/
+    h5_read(grp, "wang_landau_cycle", sp.wang_landau_cycle);
+    h5_read(grp, "wang_landau_lambda", sp.wang_landau_lambda);
 
     h5_read(grp, "move_shift", sp.move_shift);
     h5_read(grp, "move_double", sp.move_double);

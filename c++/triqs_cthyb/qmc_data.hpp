@@ -42,6 +42,7 @@ namespace triqs_cthyb {
     std::vector<int> n_inner;
     block_gf<imtime, delta_target_t> delta; // Hybridization function
 
+ 
     /// This callable object adapts the Delta function for the call of the det.
     struct delta_block_adaptor {
       gf<imtime, delta_target_t> delta_block; // make a copy. Needed in the real case anyway.
@@ -60,11 +61,13 @@ namespace triqs_cthyb {
 
       friend void swap(delta_block_adaptor &dba1, delta_block_adaptor &dba2) noexcept { swap(dba1.delta_block, dba2.delta_block); }
     };
-
+    
+    
     std::vector<det_manip::det_manip<delta_block_adaptor>> dets; // The determinants
     int current_sign, old_sign;                                  // Permutation prefactor
     h_scalar_t atomic_weight;                                    // The current value of the trace or norm
     h_scalar_t atomic_reweighting;                               // The current value of the reweighting
+    
 
     // Construction
     qmc_data(double beta, solve_parameters_t const &p, atom_diag const &h_diag, std::map<std::pair<int, int>, int> linindex,
