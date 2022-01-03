@@ -78,11 +78,25 @@ namespace triqs_cthyb {
     std::cerr << num_c2 << "-th C(" << block_index2 << ",...)" << std::endl;
 #endif
 
+/* yep, my changes */
+/*
     // now mark 2 nodes for deletion
     tau1 = data.imp_trace.try_delete(num_c1, block_index1, false);
     tau2 = data.imp_trace.try_delete(num_c_dag1, block_index1, true);
     tau3 = data.imp_trace.try_delete(num_c2, block_index2, false);
     tau4 = data.imp_trace.try_delete(num_c_dag2, block_index2, true);
+*/
+
+    tau1 = det1.get_y(num_c1).first;
+    tau2 = det1.get_x(num_c_dag1).first;
+    tau3 = det2.get_y(num_c2).first;
+    tau4 = det2.get_x(num_c_dag2).first;
+    int n1 = data.imp_trace.try_delete_worm(tau1, block_index1, false);
+    int n2 = data.imp_trace.try_delete_worm(tau2, block_index1, true);
+    int n3 = data.imp_trace.try_delete_worm(tau3, block_index2, false);
+    int n4 = data.imp_trace.try_delete_worm(tau4, block_index2, true);
+
+/* end of my changes*/
 
     dtau1 = double(tau2 - tau1);
     dtau2 = double(tau4 - tau3);

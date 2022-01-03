@@ -302,6 +302,7 @@ namespace triqs_cthyb {
         if (no->op.dagger == dagger && no->op.block_index == block_index) ++i;
         return i == n + 1;
       });
+	std::cout<<"inside delete : "<<n<<" "<<i-1<< " "<< x->key<<std::endl;
       removed_nodes.push_back(x);             // store the node
       removed_keys.push_back(x->key);         // store the key
       tree.set_modified_from_root_to(x->key); // mark all nodes on path from node to root as modified
@@ -309,6 +310,30 @@ namespace triqs_cthyb {
       tree_size--;
       return x->key;
     }
+
+
+/* my try_delete */
+    int try_delete_worm(time_pt tpt, int block_index, bool dagger) noexcept {
+      // traverse the tree, looking for the nth operator of the correct dagger, block_index
+      int i  = 0;
+      node x = find_if(tree, [&](node no) {
+	//std::cout<<"inside mydelete : "<<i<< " "<< double(no->key)<<" "<<double(tpt)<<std::endl;
+        //if (no->op.dagger == dagger && no->op.block_index == block_index && double(no->key) == double(tpt))
+        if (no->op.dagger == dagger && no->op.block_index == block_index ) ++i;
+        return double(no->key)==double(tpt);
+      });
+	std::cout<<"inside mydelete : "<<i-1<< " "<< double(x->key)<<" "<<double(tpt)<<std::endl;
+      removed_nodes.push_back(x);             // store the node
+      removed_keys.push_back(x->key);         // store the key
+      tree.set_modified_from_root_to(x->key); // mark all nodes on path from node to root as modified
+      x->delete_flag = true;                  // mark the node for deletion
+      tree_size--;
+      //return x->key;
+
+      return i-1;
+    }
+
+/* end of my delete */
 
     // Clean all the delete flags
     void cancel_delete() {

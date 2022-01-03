@@ -29,9 +29,10 @@ namespace triqs_cthyb {
     return &(new_histo.first->second);
   }
 
-  move_insert_c_cdag::move_insert_c_cdag(int block_index, int block_size, std::string const &block_name, qmc_data &data,
-                                         mc_tools::random_generator &rng, histo_map_t *histos)
+  move_insert_c_cdag::move_insert_c_cdag(int block_index, int block_size, std::string const &block_name, qmc_data &data, wl_data& data_wl, bool yes_worm, mc_tools::random_generator &rng, histo_map_t *histos)
      : data(data),
+       data_wl(data_wl),
+       yes_worm(yes_worm),
        config(data.config),
        rng(rng),
        block_index(block_index),
@@ -61,6 +62,10 @@ namespace triqs_cthyb {
     std::cerr << op1 << " at " << tau1 << std::endl;
     std::cerr << op2 << " at " << tau2 << std::endl;
 #endif
+    std::cout << "* Proposing to insert:" << std::endl;
+    std::cout << op1 << " at " << tau1 << std::endl;
+    std::cout << op2 << " at " << tau2 << std::endl;
+
 
     // record the length of the proposed insertion
     dtau = double(tau2 - tau1);
@@ -79,6 +84,17 @@ namespace triqs_cthyb {
       return 0;
     }
 
+    
+    
+    int det_size=0;
+    mc_weight_t t_ratio, det_ratio;
+    double p_yee, random_number;
+    
+    std::cout<<"printing full configuration....."<<yes_worm<<std::endl;
+    std::cout<<config<<std::endl;
+
+    if(!yes_worm)
+    {
     // Computation of det ratio
     auto &det    = data.dets[block_index];
     int det_size = det.size();
@@ -92,17 +108,45 @@ namespace triqs_cthyb {
     for (num_c = 0; num_c < det_size; ++num_c) {
       if (det.get_y(num_c).first < tau2) break;
     }
-
+/*   
+   if(num_c!=0 && num_c_dag!=0)
+   { 
+    std::cerr << "* testing det functions inside insert:" << std::endl;
+    std::cerr << "num_c_dag " << " is " << num_c_dag<< std::endl;
+    std::cerr << "num_c " << " is " << num_c << std::endl;
+    //std::cerr << "num_c_dag vs det.get_x(num_c_dag).first" << " is " << num_c_dag<<" "<< det.get_x(num_c_dag).first << std::endl;
+    //std::cerr << "num_c vs det.get_y(num_c).first" << " is " << num_c<<" "<< det.get_y(num_c).first << std::endl;
+	}
+*/
     // Insert in the det. Returns the ratio of dets (Cf det_manip doc).
-    auto det_ratio = det.try_insert(num_c_dag, num_c, {tau1, op1.inner_index}, {tau2, op2.inner_index});
-
+    det_ratio = det.try_insert(num_c_dag, num_c, {tau1, op1.inner_index}, {tau2, op2.inner_index});
+    
     // proposition probability
-    mc_weight_t t_ratio = std::pow(block_size * config.beta() / double(det.size() + 1), 2);
+    t_ratio = std::pow(block_size * config.beta() / double(det.size() + 1), 2);
 
     // For quick abandon
-    double random_number = rng.preview();
+    random_number = rng.preview();
     if (random_number == 0.0) return 0;
-    double p_yee = std::abs(t_ratio * det_ratio / data.atomic_weight);
+    p_yee = std::abs(t_ratio * det_ratio / data.atomic_weight);
+
+     
+    }
+    else
+    {
+
+      std::cout<<"Inside worm insertion in insert.cpp"<<std::endl;
+      det_ratio= mc_weight_t(1.0);
+
+    // proposition probability
+    t_ratio = std::pow(block_size * config.beta() , 2);
+
+    // For quick abandon
+    random_number = rng.preview();
+    if (random_number == 0.0) return 0;
+    p_yee = std::abs(t_ratio * det_ratio / data.atomic_weight);
+
+    }
+
 
     // computation of the new trace after insertion
     std::tie(new_atomic_weight, new_atomic_reweighting) = data.imp_trace.compute(p_yee, random_number);
@@ -117,7 +161,8 @@ namespace triqs_cthyb {
       TRIQS_RUNTIME_ERROR << "(insert) trace_ratio not finite " << new_atomic_weight << " " << data.atomic_weight << " "
                           << new_atomic_weight / data.atomic_weight << " in config " << config.get_id();
 
-    mc_weight_t p = atomic_weight_ratio * det_ratio;
+    
+     mc_weight_t p = atomic_weight_ratio * det_ratio;
 
 #ifdef EXT_DEBUG
     std::cerr << "Atomic ratio: " << atomic_weight_ratio << '\t';
@@ -130,14 +175,20 @@ namespace triqs_cthyb {
     if (!isfinite(p * t_ratio)) {
       std::cerr << "Insert move info:\n";
       std::cerr << "Atomic ratio: " << atomic_weight_ratio << '\t';
-      std::cerr << "Det ratio: " << det_ratio << '\t';
+      if(!yes_worm) std::cerr << "Det ratio: " << det_ratio << '\t';
       std::cerr << "Prefactor: " << t_ratio << '\t';
       std::cerr << "Weight: " << p * t_ratio << std::endl;
       std::cerr << "p_yee * newtrace: " << p_yee * new_atomic_weight << std::endl;
       
       TRIQS_RUNTIME_ERROR << "(insert) p * t_ratio not finite p : " << p << " t_ratio : " << t_ratio << " in config " << config.get_id();
     }
-    return p * t_ratio;
+
+    //just to test indertion; delete later
+     //if(yes_worm) return mc_weight_t(1.0);
+     if(yes_worm) std::cout<<"worm insertion ratio***** : "<<p*t_ratio<<std::endl;
+     else std::cout<<" insertion ratio***** : "<<p*t_ratio<<std::endl;
+    
+     return p * t_ratio;
   }
 
   mc_weight_t move_insert_c_cdag::accept() {
@@ -150,8 +201,15 @@ namespace triqs_cthyb {
     config.insert(tau2, op2);
     config.finalize();
 
+    if(yes_worm)
+    {
+      std::cout<<"HERE inserting accepted worm"<<std::endl;
+    data_wl.insert_worm_dag(tau1, op1);
+    data_wl.insert_worm(tau2, op2);
+    }
+
     // insert in the determinant
-    data.dets[block_index].complete_operation();
+    if(!yes_worm) data.dets[block_index].complete_operation();
     data.update_sign();
     data.atomic_weight      = new_atomic_weight;
     data.atomic_reweighting = new_atomic_reweighting;
@@ -160,7 +218,7 @@ namespace triqs_cthyb {
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_insert_c_cdag accepted" << std::endl;
     std::cerr << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    check_det_sequence(data.dets[block_index], config.get_id());
+    if(!yes_worm) check_det_sequence(data.dets[block_index], config.get_id());
 #endif
 
     return data.current_sign / data.old_sign;
@@ -170,12 +228,12 @@ namespace triqs_cthyb {
 
     config.finalize();
     data.imp_trace.cancel_insert();
-    data.dets[block_index].reject_last_try();
+    if(!yes_worm) data.dets[block_index].reject_last_try();
 
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_insert_c_cdag rejected" << std::endl;
     std::cerr << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    check_det_sequence(data.dets[block_index], config.get_id());
+    if(!yes_worm) check_det_sequence(data.dets[block_index], config.get_id());
 #endif
   }
 }

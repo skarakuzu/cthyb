@@ -22,7 +22,7 @@
  ******************************************************************************/
 #include "./solver_core.hpp"
 #include "./qmc_data.hpp"
-#include "./wl_data.hpp"
+//#include "./wl_data.hpp"
 
 #include <triqs/utility/callbacks.hpp>
 #include <triqs/utility/exceptions.hpp>
@@ -53,6 +53,7 @@
 #endif
 #include "./measures/util.hpp"
 
+#include "./moves/worm.hpp"
 
 namespace triqs_cthyb {
 
@@ -266,6 +267,7 @@ namespace triqs_cthyb {
 
     // Initialise Monte Carlo quantities
     qmc_data data(beta, params, h_diag, linindex, _Delta_tau, n_inner, histo_map);
+    wl_data data_wl(params.wang_landau_lambda);
     auto qmc =
        mc_tools::mc_generic<mc_weight_t>(params.random_name, params.random_seed, params.verbosity);
 
@@ -289,10 +291,19 @@ namespace triqs_cthyb {
       int block_size         = _Delta_tau[block].data().shape()[1];
       auto const &block_name = delta_names[block];
       double prop_prob       = get_prob_prop(block_name);
-      inserts.add(move_insert_c_cdag(block, block_size, block_name, data, qmc.get_rng(), histo_map),
+      inserts.add(move_insert_c_cdag(block, block_size, block_name, data, data_wl, false, qmc.get_rng(), histo_map),
                   "Insert Delta_" + block_name, prop_prob);
-      removes.add(move_remove_c_cdag(block, block_size, block_name, data, qmc.get_rng(), histo_map),
+      removes.add(move_remove_c_cdag(block, block_size, block_name, data, data_wl, false, qmc.get_rng(), histo_map),
                   "Remove Delta_" + block_name, prop_prob);
+/*changed*/
+      std::cout<<"_Delta_tau.size() vs block size: "<<_Delta_tau.size()<<" "<<block_size<<std::endl;
+
+      if(params.wang_landau_cycle)
+      {
+	qmc.add_move(move_worm(block, block_size, block_name, data, data_wl, true, qmc.get_rng(), histo_map),"Worm Move_ " + block_name, prop_prob);
+
+      }
+
       if (params.move_double) {
         for (size_t block2 = 0; block2 < _Delta_tau.size(); ++block2) {
           int block_size2         = _Delta_tau[block2].data().shape()[1];

@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <triqs/mc_tools.hpp>
 #include "../qmc_data.hpp"
+#include "../wl_data.hpp"
 
 namespace triqs_cthyb {
 
@@ -29,6 +30,7 @@ namespace triqs_cthyb {
   class move_remove_c_cdag {
 
     qmc_data &data;
+    wl_data &data_wl;
     configuration &config;
     mc_tools::random_generator &rng;
     int block_index, block_size;
@@ -36,12 +38,14 @@ namespace triqs_cthyb {
     double dtau;
     h_scalar_t new_atomic_weight, new_atomic_reweighting;
     time_pt tau1, tau2;
+    time_pt tau1_try, tau2_try; //my changes
+    bool yes_worm=false;
 
     histogram *add_histo(std::string const &name, histo_map_t *histos);
 
     public:
-    move_remove_c_cdag(int block_index, int block_size, std::string const &block_name, qmc_data &data, mc_tools::random_generator &rng,
-                       histo_map_t *histos);
+    move_remove_c_cdag(int block_index, int block_size, std::string const &block_name, qmc_data &data, wl_data& data_wl, bool yes_worm,  mc_tools::random_generator &rng, histo_map_t *histos);
+    //move_remove_c_cdag(int block_index, int block_size, std::string const &block_name, qmc_data &data, mc_tools::random_generator &rng,histo_map_t *histos);
 
     mc_weight_t attempt();
     mc_weight_t accept();
