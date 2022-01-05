@@ -30,10 +30,14 @@ namespace triqs_cthyb {
   // Insertion of C, C^dagger operator
   class move_worm{
     
+    qmc_data &data;
     wl_data &data_wl;
+    configuration &config;
     move_insert_c_cdag worm_insert; 
     move_remove_c_cdag worm_remove; 
     mc_tools::random_generator &rng;
+    histogram *histo_proposed_worm_insert, *histo_accepted_worm_insert; // Analysis histograms
+    histogram *histo_proposed_worm_remove, *histo_accepted_worm_remove; // Analysis histograms
 
     histogram *add_histo(std::string const &name, histo_map_t *histos);
 

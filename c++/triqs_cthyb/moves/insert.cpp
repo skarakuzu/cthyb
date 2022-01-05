@@ -69,7 +69,7 @@ namespace triqs_cthyb {
 
     // record the length of the proposed insertion
     dtau = double(tau2 - tau1);
-    if (histo_proposed) *histo_proposed << dtau;
+    if (histo_proposed && !yes_worm) *histo_proposed << dtau;
 
     // Insert the operators op1 and op2 at time tau1, tau2
     // 1- In the very exceptional case where the insert has failed because an operator is already sitting here
@@ -213,7 +213,7 @@ namespace triqs_cthyb {
     data.update_sign();
     data.atomic_weight      = new_atomic_weight;
     data.atomic_reweighting = new_atomic_reweighting;
-    if (histo_accepted) *histo_accepted << dtau;
+    if (histo_accepted && !yes_worm) *histo_accepted << dtau;
 
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_insert_c_cdag accepted" << std::endl;

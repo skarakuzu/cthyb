@@ -23,19 +23,23 @@
 
 namespace triqs_cthyb {
 
-/*
   histogram *move_worm::add_histo(std::string const &name, histo_map_t *histos) {
     if (!histos) return nullptr;
     auto new_histo = histos->insert({name, {.0, config.beta(), 100}});
     return &(new_histo.first->second);
   }
-*/
 
   move_worm::move_worm(int block_index, int block_size, std::string const &block_name, qmc_data &data, wl_data& data_wl, bool yes_worm, mc_tools::random_generator &rng, histo_map_t *histos)
-  : data_wl(data_wl),
+  : data(data),
+    data_wl(data_wl),
+    config(data.config),
     rng(rng),
     worm_insert(block_index, block_size, block_name, data, data_wl, yes_worm, rng, histos),
-    worm_remove(block_index, block_size, block_name, data, data_wl, yes_worm, rng, histos)
+    worm_remove(block_index, block_size, block_name, data, data_wl, yes_worm, rng, histos),
+    histo_proposed_worm_insert(add_histo("worm_insert_length_proposed_" + block_name, histos)),
+    histo_accepted_worm_insert(add_histo("worm_insert_length_accepted_" + block_name, histos)),
+    histo_proposed_worm_remove(add_histo("worm_remove_length_proposed_" + block_name, histos)),
+    histo_accepted_worm_remove(add_histo("worm_remove_length_accepted_" + block_name, histos))
   {}
   mc_weight_t move_worm::attempt() {
  
@@ -45,15 +49,25 @@ namespace triqs_cthyb {
     {
 
     std::cout<<"Attempting a worm insertion !!!"<<std::endl;
-    return worm_insert.attempt();
+    auto res =  worm_insert.attempt();
+    
+    if (histo_proposed_worm_insert) *histo_proposed_worm_insert <<  worm_insert.get_dtau();
+    
+    //return worm_insert.attempt();
+    return res;
 
     }
     else
     {
     std::cout<<"Attempting a worm remove !!!"<<std::endl;
     
-    return worm_remove.attempt();
+    auto res =  worm_remove.attempt();
 
+    if (histo_proposed_worm_remove) *histo_proposed_worm_remove <<  worm_remove.get_dtau();
+//    std::cout<<"histo_proposed_worm_remove: "<<worm_remove.get_dtau()<<std::endl;
+
+    //return worm_remove.attempt();
+     return res;
     }
   }
 
@@ -62,13 +76,24 @@ namespace triqs_cthyb {
     if(data_wl.no_worm())
     {
 
-    return worm_insert.accept();
+    auto res =  worm_insert.accept();
+    
+    if (histo_accepted_worm_insert) *histo_accepted_worm_insert << worm_insert.get_dtau();
 
+    return res;
+    //return worm_insert.accept();
     }
     else
     {
     
-    return worm_remove.accept();
+    auto res =  worm_remove.accept();
+    
+    if (histo_accepted_worm_remove ) *histo_accepted_worm_remove << worm_remove.get_dtau();
+//    std::cout<<"histo_accepted_worm_remove: "<<worm_remove.get_dtau()<<std::endl;
+
+
+    return res;
+    //return worm_remove.accept();
 
     }
   }

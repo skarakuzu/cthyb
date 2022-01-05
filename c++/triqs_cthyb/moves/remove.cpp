@@ -107,7 +107,7 @@ namespace triqs_cthyb {
 
     // record the length of the proposed removal
     dtau = double(tau2 - tau1);
-    if (histo_proposed) *histo_proposed << dtau;
+    if (histo_proposed && !yes_worm) *histo_proposed << dtau;
 
     det_ratio = det.try_remove(num_c_dag, num_c);
 
@@ -125,6 +125,7 @@ namespace triqs_cthyb {
    /* my changes */ 
     tau1 = data_wl.get_time_dag(0);
     tau2 = data_wl.get_time(0);
+    dtau = double(tau2 - tau1);
     int block_index_worm_dag = data_wl.get_block_index_dag(0);
     int block_index_worm = data_wl.get_block_index(0);
     
@@ -219,7 +220,7 @@ namespace triqs_cthyb {
     data.update_sign();
     data.atomic_weight      = new_atomic_weight;
     data.atomic_reweighting = new_atomic_reweighting;
-    if (histo_accepted) *histo_accepted << dtau;
+    if (histo_accepted && !yes_worm) *histo_accepted << dtau;
 
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_remove_c_cdag accepted" << std::endl;

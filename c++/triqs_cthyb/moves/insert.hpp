@@ -42,6 +42,7 @@ namespace triqs_cthyb {
 
     histogram *add_histo(std::string const &name, histo_map_t *histos);
 
+
     public:
     move_insert_c_cdag(int block_index, int block_size, std::string const &block_name, qmc_data &data, wl_data& data_wl, bool yes_worm,  mc_tools::random_generator &rng, histo_map_t *histos);
 
@@ -50,5 +51,6 @@ namespace triqs_cthyb {
     mc_weight_t attempt();
     mc_weight_t accept();
     void reject();
+    double get_dtau() {return dtau;}
   };
 }
