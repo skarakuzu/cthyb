@@ -39,6 +39,8 @@ namespace triqs_cthyb {
     histogram *histo_proposed_worm_insert, *histo_accepted_worm_insert; // Analysis histograms
     histogram *histo_proposed_worm_remove, *histo_accepted_worm_remove; // Analysis histograms
 
+    bool attempt_was_insert;
+
     histogram *add_histo(std::string const &name, histo_map_t *histos);
 
     public:

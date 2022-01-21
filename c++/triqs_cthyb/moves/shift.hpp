@@ -21,6 +21,7 @@
 #pragma once
 #include <triqs/mc_tools.hpp>
 #include "../qmc_data.hpp"
+#include "../wl_data.hpp"
 
 namespace triqs_cthyb {
 
@@ -28,6 +29,7 @@ namespace triqs_cthyb {
   class move_shift_operator {
 
     qmc_data &data;
+    wl_data &data_wl;
     configuration &config;
     mc_tools::random_generator &rng;
     histogram *histo_proposed, *histo_accepted; // Analysis histograms
@@ -38,11 +40,12 @@ namespace triqs_cthyb {
     using det_type = det_manip::det_manip<qmc_data::delta_block_adaptor>;
     det_type::RollDirection roll_direction;
     int block_index;
+    bool yes_worm=false;
 
     histogram *add_histo(std::string const &name, histo_map_t *histos);
 
     public:
-    move_shift_operator(qmc_data &data, mc_tools::random_generator &rng, histo_map_t *histos);
+    move_shift_operator(qmc_data &data, wl_data& data_wl, bool yes_worm, mc_tools::random_generator &rng, histo_map_t *histos);
     mc_weight_t attempt();
     mc_weight_t accept();
     void reject();

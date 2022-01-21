@@ -44,6 +44,11 @@ namespace triqs_cthyb {
        histo_accepted(add_histo("remove_length_accepted_" + block_name, histos)) {}
 
   mc_weight_t move_remove_c_cdag::attempt() {
+    
+    std::cout<<std::endl;
+    if(!yes_worm) std::cout<<"************NEW REMOVE MOVE ATTEMPT********"<<std::endl;
+    else std::cout<<"************NEW WORM REMOVE MOVE ATTEMPT********"<<std::endl;
+    std::cout<<std::endl;
 
 #ifdef EXT_DEBUG
     std::cerr << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
@@ -76,6 +81,7 @@ namespace triqs_cthyb {
     //tau1 = data.imp_trace.try_delete(num_c, block_index, false);
     //tau2 = data.imp_trace.try_delete(num_c_dag, block_index, true);
 
+    
     tau1 = det.get_y(num_c).first;
     tau2 = det.get_x(num_c_dag).first;
     int n1 = data.imp_trace.try_delete_worm(tau2, block_index, true);
@@ -123,6 +129,9 @@ namespace triqs_cthyb {
     else
     {
    /* my changes */ 
+    data_wl.update_current_space();
+    
+    
     tau1 = data_wl.get_time_dag(0);
     tau2 = data_wl.get_time(0);
     dtau = double(tau2 - tau1);
@@ -158,6 +167,7 @@ namespace triqs_cthyb {
 #ifdef EXT_DEBUG
       std::cerr << "atomic_weight == 0" << std::endl;
 #endif
+      std::cout << "atomic_weight == 0 with pyee " << p_yee<<" "<<random_number<< std::endl;
       return 0;
     }
     auto atomic_weight_ratio = new_atomic_weight / data.atomic_weight;
@@ -190,10 +200,13 @@ namespace triqs_cthyb {
     //just to test indertion; delete later
      //if(yes_worm) return mc_weight_t(1.0);
     
-     if(yes_worm) std::cout<<"worm removal ratio***** : "<<p/t_ratio<<std::endl;
-     else std::cout<<"removal ratio***** : "<<p/t_ratio<<std::endl;
+     if(yes_worm) std::cout<<"worm removal ratio***** : "<<(p/t_ratio)/data_wl.get_mu_space()<<std::endl;
+     else std::cout<<"removal ratio***** : "<<(p/t_ratio)<<std::endl;
      
-     return p / t_ratio;
+     if(yes_worm) return ( p / t_ratio ) /data_wl.get_mu_space();
+     else return ( p / t_ratio );
+     //return ( p / t_ratio ) /data_wl.get_mu_space();
+
 
   }
 
@@ -214,6 +227,8 @@ namespace triqs_cthyb {
       data_wl.erase_worm_dag(0);
       std::cout<<"worm sizes after removal: "<<data_wl.size_worm()<<" "<<data_wl.size_worm_dag()<<std::endl;
     }
+    data_wl.update_current_space();
+    data_wl.update_mu_space();
 
     // remove from the determinants
     if(!yes_worm) data.dets[block_index].complete_operation();
@@ -236,6 +251,11 @@ namespace triqs_cthyb {
     config.finalize();
     data.imp_trace.cancel_delete();
     if(!yes_worm) data.dets[block_index].reject_last_try();
+   
+    data_wl.update_current_space();
+    data_wl.update_mu_space();
+    //if(new_atomic_weight!=0.) data_wl.update_mu_space();
+    //if(yes_worm) data_wl.update_mu_space();
 
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_remove_c_cdag rejected" << std::endl;

@@ -267,9 +267,11 @@ namespace triqs_cthyb {
 
     // Initialise Monte Carlo quantities
     qmc_data data(beta, params, h_diag, linindex, _Delta_tau, n_inner, histo_map);
-    wl_data data_wl(params.wang_landau_lambda);
+    //wl_data data_wl(params.wang_landau_lambda);
     auto qmc =
        mc_tools::mc_generic<mc_weight_t>(params.random_name, params.random_seed, params.verbosity);
+
+    wl_data data_wl(params, qmc.get_rng());
 
     // --------------------------------------------------------------------------
     // Moves
@@ -311,11 +313,11 @@ namespace triqs_cthyb {
           double prop_prob2       = get_prob_prop(block_name2);
           double_inserts.add(
              move_insert_c_c_cdag_cdag(block, block2, block_size, block_size2, block_name,
-                                       block_name2, data, qmc.get_rng(), histo_map),
+                                       block_name2, data,data_wl, false, qmc.get_rng(), histo_map),
              "Insert Delta_" + block_name + "_" + block_name2, prop_prob * prop_prob2);
           double_removes.add(
              move_remove_c_c_cdag_cdag(block, block2, block_size, block_size2, block_name,
-                                       block_name2, data, qmc.get_rng(), histo_map),
+                                       block_name2, data, data_wl, false, qmc.get_rng(), histo_map),
              "Remove Delta_" + block_name + "_" + block_name2, prop_prob * prop_prob2);
         }
       }
@@ -329,7 +331,7 @@ namespace triqs_cthyb {
     }
 
     if (params.move_shift)
-      qmc.add_move(move_shift_operator(data, qmc.get_rng(), histo_map), "Shift one operator", 1.0);
+      qmc.add_move(move_shift_operator(data, data_wl, false, qmc.get_rng(), histo_map), "Shift one operator", 1.0);
 
     if (params.move_global.size()) {
       move_set_type global(qmc.get_rng());

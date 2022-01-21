@@ -42,6 +42,13 @@ namespace triqs_cthyb {
 
   mc_weight_t move_insert_c_cdag::attempt() {
 
+
+    std::cout<<std::endl;
+    if(!yes_worm) std::cout<<"************NEW INSERT MOVE ATTEMPT********"<<std::endl;
+    else std::cout<<"************NEW WORM INSERT MOVE ATTEMPT********"<<std::endl;
+    std::cout<<std::endl;
+
+
 #ifdef EXT_DEBUG
     std::cerr << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
     std::cerr << "In config " << config.get_id() << std::endl;
@@ -135,7 +142,12 @@ namespace triqs_cthyb {
     {
 
       std::cout<<"Inside worm insertion in insert.cpp"<<std::endl;
-      det_ratio= mc_weight_t(1.0);
+    det_ratio= mc_weight_t(1.0);
+    
+    data_wl.insert_worm_dag(tau1, op1);
+    data_wl.insert_worm(tau2, op2);
+    
+    data_wl.update_current_space();
 
     // proposition probability
     t_ratio = std::pow(block_size * config.beta() , 2);
@@ -154,6 +166,7 @@ namespace triqs_cthyb {
 #ifdef EXT_DEBUG
       std::cerr << "atomic_weight == 0" << std::endl;
 #endif
+      std::cout << "atomic_weight == 0 with pyee " << p_yee<<" "<<random_number<< std::endl;
       return 0;
     }
     auto atomic_weight_ratio = new_atomic_weight / data.atomic_weight;
@@ -187,8 +200,12 @@ namespace triqs_cthyb {
      //if(yes_worm) return mc_weight_t(1.0);
      if(yes_worm) std::cout<<"worm insertion ratio***** : "<<p*t_ratio<<std::endl;
      else std::cout<<" insertion ratio***** : "<<p*t_ratio<<std::endl;
-    
-     return p * t_ratio;
+   
+
+
+     if(yes_worm) return p * t_ratio * data_wl.get_mu_space();
+     else return p * t_ratio ;
+     //return p * t_ratio * data_wl.get_mu_space();
   }
 
   mc_weight_t move_insert_c_cdag::accept() {
@@ -200,14 +217,17 @@ namespace triqs_cthyb {
     config.insert(tau1, op1);
     config.insert(tau2, op2);
     config.finalize();
-
+/*
     if(yes_worm)
     {
       std::cout<<"HERE inserting accepted worm"<<std::endl;
     data_wl.insert_worm_dag(tau1, op1);
     data_wl.insert_worm(tau2, op2);
     }
-
+*/
+    //if(yes_worm) data_wl.update_mu_space();
+    data_wl.update_mu_space();
+    
     // insert in the determinant
     if(!yes_worm) data.dets[block_index].complete_operation();
     data.update_sign();
@@ -229,6 +249,17 @@ namespace triqs_cthyb {
     config.finalize();
     data.imp_trace.cancel_insert();
     if(!yes_worm) data.dets[block_index].reject_last_try();
+    
+    if(yes_worm)
+    {
+      std::cout<<"HERE deleting rejected worm"<<std::endl;
+    data_wl.erase_worm_dag(0);
+    data_wl.erase_worm(0);
+
+    }
+    data_wl.update_current_space();
+    //if(new_atomic_weight!=0.) data_wl.update_mu_space();
+    data_wl.update_mu_space();
 
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_insert_c_cdag rejected" << std::endl;

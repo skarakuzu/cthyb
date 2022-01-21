@@ -29,10 +29,10 @@ namespace triqs_cthyb {
     return &(new_histo.first->second);
   }
 
-  move_remove_c_c_cdag_cdag::move_remove_c_c_cdag_cdag(int block_index1, int block_index2, int block_size1, int block_size2,
-                                                       std::string const &block_name1, std::string const &block_name2, qmc_data &data,
-                                                       mc_tools::random_generator &rng, histo_map_t *histos)
+  move_remove_c_c_cdag_cdag::move_remove_c_c_cdag_cdag(int block_index1, int block_index2, int block_size1, int block_size2, std::string const &block_name1, std::string const &block_name2, qmc_data &data, wl_data& data_wl, bool yes_worm, mc_tools::random_generator &rng, histo_map_t *histos)
      : data(data),
+       data_wl(data_wl),
+       yes_worm(yes_worm),
        config(data.config),
        rng(rng),
        block_index1(block_index1),
@@ -192,6 +192,9 @@ namespace triqs_cthyb {
     check_det_sequence(data.dets[block_index1], config.get_id());
     check_det_sequence(data.dets[block_index2], config.get_id());
 #endif
+    data_wl.update_current_space();
+    //data_wl.update_mu_space();
+    if(new_atomic_weight!=0.) data_wl.update_mu_space();
 
     return data.current_sign / data.old_sign;
   }
@@ -214,5 +217,8 @@ namespace triqs_cthyb {
     check_det_sequence(data.dets[block_index1], config.get_id());
     check_det_sequence(data.dets[block_index2], config.get_id());
 #endif
+    data_wl.update_current_space();
+    //data_wl.update_mu_space();
+    if(new_atomic_weight!=0.) data_wl.update_mu_space();
   }
 }

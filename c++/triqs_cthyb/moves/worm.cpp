@@ -45,21 +45,26 @@ namespace triqs_cthyb {
  
 
 //    std::cout<<"Attempting a worm move !!!, is worm container empty?"<<data_wl.no_worm()<<std::endl;
-    if(data_wl.no_worm())
+    //if(data_wl.no_worm())
+    if(data_wl.chose_insert_worm())
     {
-
-    std::cout<<"Attempting a worm insertion !!!"<<std::endl;
+    attempt_was_insert = true;
+    //std::cout<<"Attempting a worm insertion !!!"<<std::endl;
     auto res =  worm_insert.attempt();
     
     if (histo_proposed_worm_insert) *histo_proposed_worm_insert <<  worm_insert.get_dtau();
     
+//    data_wl.update_current_space();
+
     //return worm_insert.attempt();
-    return res;
+     //return res * data_wl.get_mu_space();
+     return res;
 
     }
     else
     {
-    std::cout<<"Attempting a worm remove !!!"<<std::endl;
+    attempt_was_insert = false;
+    //std::cout<<"Attempting a worm remove !!!"<<std::endl;
     
     auto res =  worm_remove.attempt();
 
@@ -67,18 +72,22 @@ namespace triqs_cthyb {
 //    std::cout<<"histo_proposed_worm_remove: "<<worm_remove.get_dtau()<<std::endl;
 
     //return worm_remove.attempt();
+     //return res / data_wl.get_mu_space();
      return res;
     }
+
   }
 
   mc_weight_t move_worm::accept() {
 
-    if(data_wl.no_worm())
+    if(attempt_was_insert)
     {
 
     auto res =  worm_insert.accept();
     
     if (histo_accepted_worm_insert) *histo_accepted_worm_insert << worm_insert.get_dtau();
+    
+//    data_wl.update_mu_space();
 
     return res;
     //return worm_insert.accept();
@@ -91,6 +100,8 @@ namespace triqs_cthyb {
     if (histo_accepted_worm_remove ) *histo_accepted_worm_remove << worm_remove.get_dtau();
 //    std::cout<<"histo_accepted_worm_remove: "<<worm_remove.get_dtau()<<std::endl;
 
+//    data_wl.update_current_space();
+//    data_wl.update_mu_space();
 
     return res;
     //return worm_remove.accept();
@@ -100,16 +111,20 @@ namespace triqs_cthyb {
 
   void move_worm::reject() {
   
-    if(data_wl.no_worm())
+    if(attempt_was_insert)
     {
 
     worm_insert.reject();
 
+//    data_wl.update_current_space();
+//    data_wl.update_mu_space();
+    
     }
     else
     {
     
     worm_remove.reject();
+//    data_wl.update_mu_space();
 
     }
   }

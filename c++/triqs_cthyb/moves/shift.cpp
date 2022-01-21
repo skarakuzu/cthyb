@@ -29,8 +29,10 @@ namespace triqs_cthyb {
     return &(new_histo.first->second);
   }
 
-  move_shift_operator::move_shift_operator(qmc_data &data, mc_tools::random_generator &rng, histo_map_t *histos)
+  move_shift_operator::move_shift_operator(qmc_data &data, wl_data& data_wl, bool yes_worm, mc_tools::random_generator &rng, histo_map_t *histos)
      : data(data),
+       data_wl(data_wl),
+       yes_worm(yes_worm),
        config(data.config),
        rng(rng),
        histo_proposed(add_histo("shift_length_proposed", histos)),
@@ -141,11 +143,18 @@ namespace triqs_cthyb {
     std::cerr << " to " << std::endl;
     std::cerr << op_new << " tau = " << tau_new << std::endl;
 #endif
+    std::cout << "* Proposing to shift:" << std::endl;
+    std::cout << op_old << " tau = " << tau_old << std::endl;
+    std::cout << " to " << std::endl;
+    std::cout << op_new << " tau = " << tau_new << std::endl;
 
+    std::cout<<"printing full configuration....."<<std::endl;
+    std::cout<<config<<std::endl;
     // --- Modify the tree
 
     // Mark the operator at original time for deletion in the tree
-    data.imp_trace.try_delete(op_pos_in_det, block_index, is_dagger);
+//    data.imp_trace.try_delete(op_pos_in_det, block_index, is_dagger);
+    int n = data.imp_trace.try_delete_worm(tau_old, block_index, is_dagger);
 
     // Try to insert the new operator at shifted time in the tree
     try {
