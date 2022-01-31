@@ -82,7 +82,7 @@ namespace triqs_cthyb {
     else if(size_worm()==1 && size_worm_dag()==1) current_space = G1;
     else if(size_worm()==2 && size_worm_dag()==2) current_space = G2;
    
-    //std::cout<<"Current space: "<<current_space<<" "<<WS[current_space].Vj<<std::endl;
+    std::cout<<"Current space: "<<current_space<<" "<<WS[current_space].Vj<<std::endl;
 
     }
 
@@ -109,14 +109,14 @@ namespace triqs_cthyb {
      it->second.Vj /= save_Vj; 
     }	
     
-    //params.wang_landau_lambda = sqrt(params.wang_landau_lambda);
+    params.wang_landau_lambda = sqrt(params.wang_landau_lambda);
 
     }
     
     void print_space_visit(){
     for (auto it = WS.begin(); it != WS.end(); ++it)
     {
-      std::cout<<"Space "<<it->first<<" has been visited "<<it->second.Nvisit<<" times with eta:"<<it->second.Vj<<std::endl;; 
+      std::cout<<"Space "<<it->first<<" has been visited "<<it->second.Nvisit<<" times "<<std::endl;; 
     }	
     }
 
@@ -128,10 +128,10 @@ namespace triqs_cthyb {
     bool stop_cycle()
     {
     bool res;
-    for (auto it = WS.begin(); it != WS.end(); ++it)
+    for (auto it = WS.begin()+1; it != WS.end(); ++it)
     {
     res = false;
-    if((abs(WS[Z].Nvisit - it->second.Nvisit) < WS[Z].Nvisit*cutoff/100. ) && params.wang_landau_lambda <=1) res = true; 
+    if(abs(WS[Z].second.Nvisit - it->second.Nvisit) < WS[Z].second.Nvisit*cutoff/100. ) res = true; 
     }	
 
     return res;

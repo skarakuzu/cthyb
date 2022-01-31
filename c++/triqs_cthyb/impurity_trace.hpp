@@ -302,7 +302,7 @@ namespace triqs_cthyb {
         if (no->op.dagger == dagger && no->op.block_index == block_index) ++i;
         return i == n + 1;
       });
-	std::cout<<"inside delete : "<<n<<" "<<i-1<< " "<< x->key<<std::endl;
+	//std::cout<<"inside delete : "<<n<<" "<<i-1<< " "<< x->key<<std::endl;
       removed_nodes.push_back(x);             // store the node
       removed_keys.push_back(x->key);         // store the key
       tree.set_modified_from_root_to(x->key); // mark all nodes on path from node to root as modified
@@ -322,7 +322,7 @@ namespace triqs_cthyb {
         if (no->op.dagger == dagger && no->op.block_index == block_index ) ++i;
         return double(no->key)==double(tpt);
       });
-	std::cout<<"inside mydelete : "<<i-1<< " "<< double(x->key)<<" "<<double(tpt)<<std::endl;
+	//std::cout<<"inside mydelete : "<<i-1<< " "<< double(x->key)<<" "<<double(tpt)<<std::endl;
       removed_nodes.push_back(x);             // store the node
       removed_keys.push_back(x->key);         // store the key
       tree.set_modified_from_root_to(x->key); // mark all nodes on path from node to root as modified

@@ -199,7 +199,7 @@ namespace triqs_cthyb {
     /*here I change */
     /// Analyse performance of trace computation with histograms (developers only)?
     bool wang_landau_cycle = false;
-    double wang_landau_lambda = 2.0;
+    double wang_landau_lambda = 1.0;
 
     /// Operator insertion/removal probabilities for different blocks
     /// type: dict(str:float)

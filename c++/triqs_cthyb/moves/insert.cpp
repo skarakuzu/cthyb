@@ -43,11 +43,12 @@ namespace triqs_cthyb {
   mc_weight_t move_insert_c_cdag::attempt() {
 
 
+   /*
     std::cout<<std::endl;
     if(!yes_worm) std::cout<<"************NEW INSERT MOVE ATTEMPT********"<<std::endl;
     else std::cout<<"************NEW WORM INSERT MOVE ATTEMPT********"<<std::endl;
     std::cout<<std::endl;
-
+    */
 
 #ifdef EXT_DEBUG
     std::cerr << ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" << std::endl;
@@ -69,10 +70,11 @@ namespace triqs_cthyb {
     std::cerr << op1 << " at " << tau1 << std::endl;
     std::cerr << op2 << " at " << tau2 << std::endl;
 #endif
+    /*
     std::cout << "* Proposing to insert:" << std::endl;
     std::cout << op1 << " at " << tau1 << std::endl;
     std::cout << op2 << " at " << tau2 << std::endl;
-
+    */
 
     // record the length of the proposed insertion
     dtau = double(tau2 - tau1);
@@ -97,8 +99,11 @@ namespace triqs_cthyb {
     mc_weight_t t_ratio, det_ratio;
     double p_yee, random_number;
     
+    /*
     std::cout<<"printing full configuration....."<<yes_worm<<std::endl;
     std::cout<<config<<std::endl;
+    */
+
 
     if(!yes_worm)
     {
@@ -141,7 +146,7 @@ namespace triqs_cthyb {
     else
     {
 
-      std::cout<<"Inside worm insertion in insert.cpp"<<std::endl;
+//      std::cout<<"Inside worm insertion in insert.cpp"<<std::endl;
     det_ratio= mc_weight_t(1.0);
     
     data_wl.insert_worm_dag(tau1, op1);
@@ -166,7 +171,7 @@ namespace triqs_cthyb {
 #ifdef EXT_DEBUG
       std::cerr << "atomic_weight == 0" << std::endl;
 #endif
-      std::cout << "atomic_weight == 0 with pyee " << p_yee<<" "<<random_number<< std::endl;
+ //     std::cout << "atomic_weight == 0 with pyee " << p_yee<<" "<<random_number<< std::endl;
       return 0;
     }
     auto atomic_weight_ratio = new_atomic_weight / data.atomic_weight;
@@ -198,8 +203,8 @@ namespace triqs_cthyb {
 
     //just to test indertion; delete later
      //if(yes_worm) return mc_weight_t(1.0);
-     if(yes_worm) std::cout<<"worm insertion ratio***** : "<<p*t_ratio<<std::endl;
-     else std::cout<<" insertion ratio***** : "<<p*t_ratio<<std::endl;
+     //if(yes_worm) std::cout<<"worm insertion ratio***** : "<<p*t_ratio<<std::endl;
+     //else std::cout<<" insertion ratio***** : "<<p*t_ratio<<std::endl;
    
 
 
@@ -252,7 +257,7 @@ namespace triqs_cthyb {
     
     if(yes_worm)
     {
-      std::cout<<"HERE deleting rejected worm"<<std::endl;
+      //std::cout<<"HERE deleting rejected worm"<<std::endl;
     data_wl.erase_worm_dag(0);
     data_wl.erase_worm(0);
 

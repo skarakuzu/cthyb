@@ -22,33 +22,29 @@
 #include <triqs/mc_tools.hpp>
 #include "../qmc_data.hpp"
 #include "../wl_data.hpp"
-#include "./insert.hpp"
-#include "./remove.hpp"
-#include "./replace.hpp"
 
 namespace triqs_cthyb {
 
-  // Insertion of C, C^dagger operator
-  class move_worm{
-    
+  // Move a C or C^dagger operator to a different time
+  class move_worm_replace_operator {
+
     qmc_data &data;
     wl_data &data_wl;
     configuration &config;
-    move_insert_c_cdag worm_insert; 
-    move_remove_c_cdag worm_remove; 
     mc_tools::random_generator &rng;
-    histogram *histo_proposed_worm_insert, *histo_accepted_worm_insert; // Analysis histograms
-    histogram *histo_proposed_worm_remove, *histo_accepted_worm_remove; // Analysis histograms
-
-    bool attempt_was_insert;
+    histogram *histo_proposed, *histo_accepted; // Analysis histograms
+    double dtau;
+    h_scalar_t new_atomic_weight, new_atomic_reweighting;
+    time_pt tau_worm, tau_det;
+    op_desc op_worm, op_det;
+    using det_type = det_manip::det_manip<qmc_data::delta_block_adaptor>;
+    det_type::RollDirection roll_direction;
+    int block_index;
 
     histogram *add_histo(std::string const &name, histo_map_t *histos);
 
     public:
-    move_worm(int block_index, int block_size, std::string const &block_name, qmc_data &data, wl_data& data_wl, bool yes_worm,  mc_tools::random_generator &rng, histo_map_t *histos);
-
-    //move_insert_c_cdag(int block_index, int block_size, std::string const &block_name, qmc_data &data, mc_tools::random_generator &rng, histo_map_t *histos);
-
+    move_worm_replace_operator(qmc_data &data, wl_data& data_wl, mc_tools::random_generator &rng, histo_map_t *histos);
     mc_weight_t attempt();
     mc_weight_t accept();
     void reject();

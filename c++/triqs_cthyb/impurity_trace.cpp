@@ -320,7 +320,7 @@ namespace triqs_cthyb {
 
     if (to_sort_lnorm_b.size() == 0) return {0.0, 1}; // structural 0
 
-    std::cout<<"inside impurity trace 0: "<<std::endl;
+    //std::cout<<"inside impurity trace 0: "<<std::endl;
 
     // Now sort the blocks non structurally 0 according to the bound
     std::sort(to_sort_lnorm_b.begin(), to_sort_lnorm_b.end());
@@ -357,7 +357,7 @@ namespace triqs_cthyb {
 
       int block_index = to_sort_lnorm_b[bl].second; // index in original (unsorted) order
 
-    std::cout<<"inside impurity trace 1: "<<std::endl;
+    //std::cout<<"inside impurity trace 1: "<<std::endl;
       // additionnal Yee quick return criterion
       if (p_yee >= 0.0) {
         auto current_weight = (use_norm_as_weight ? std::sqrt(norm_trace_sq) : full_trace);
@@ -365,7 +365,7 @@ namespace triqs_cthyb {
         if (pmax < u_yee) return {0, 1}; // pmax < u, we can reject
       }
 
-    std::cout<<"inside impurity trace 2: "<<std::endl;
+    //std::cout<<"inside impurity trace 2: "<<std::endl;
     
       // computes the matrices, recursively along the modified path in the tree
       auto b_mat = compute_matrix(root, block_index); // b_mat = {block that b connects to, matrix for this block}

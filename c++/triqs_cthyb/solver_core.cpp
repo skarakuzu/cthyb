@@ -54,6 +54,9 @@
 #include "./measures/util.hpp"
 
 #include "./moves/worm.hpp"
+#include "./measures/G_tau_worm.hpp"
+//#include<iomanip>
+
 
 namespace triqs_cthyb {
 
@@ -415,9 +418,14 @@ namespace triqs_cthyb {
          "O_tau insertion measure");
     }
 
-    if (params.measure_G_tau) {
+    if (params.measure_G_tau && !params.wang_landau_cycle) {
       G_tau = block_gf<imtime>{{beta, Fermion, n_tau}, gf_struct};
       qmc.add_measure(measure_G_tau{data, n_tau, gf_struct, container_set()}, "G_tau measure");
+    }
+    else
+    {
+      G_tau = block_gf<imtime>{{beta, Fermion, n_tau}, gf_struct};
+      qmc.add_measure(measure_G_tau_worm{data, data_wl, n_tau, gf_struct, container_set()}, "G_tau measure via worm");
     }
 
     if (params.measure_G_l) qmc.add_measure(measure_G_l{G_l, data, n_l, gf_struct}, "G_l measure");
@@ -447,10 +455,45 @@ namespace triqs_cthyb {
 
     // --------------------------------------------------------------------------
 
+    if(params.wang_landau_cycle)
+    {
+      int numcycle = 0;
+      while(!data_wl.stop_cycle())
+      //for(int i=0; i<4; i++)
+      {
+    data_wl.reset_space_visit();
+
+    std::cout<<std::setprecision(15)<<"Wang Landau Cycle number: "<<numcycle<<" with lambda: "<<params.wang_landau_lambda<<std::endl;
+
+    _solve_status =
+       qmc.warmup(params.n_warmup_cycles, params.length_cycle,
+                                 triqs::utility::clock_callback(params.max_time));
+
+    data_wl.print_space_visit();
+    numcycle +=1;
+    
+    params.wang_landau_lambda = sqrt(params.wang_landau_lambda);
+      }
+
+     //params.wang_landau_lambda = 1.0;
+
+    _solve_status =
+       qmc.accumulate(params.n_cycles, params.length_cycle,
+                                 triqs::utility::clock_callback(params.max_time));
+
+    data_wl.print_space_visit();
+
+    }
+    else
+    {
+
     // Run! The empty (starting) configuration has sign = 1
     _solve_status =
        qmc.warmup_and_accumulate(params.n_warmup_cycles, params.n_cycles, params.length_cycle,
                                  triqs::utility::clock_callback(params.max_time));
+    }
+
+
     qmc.collect_results(_comm);
 
     if (params.verbosity >= 2) {
