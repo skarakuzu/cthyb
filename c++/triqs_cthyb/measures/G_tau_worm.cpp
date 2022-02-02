@@ -27,14 +27,19 @@ namespace triqs_cthyb {
   using namespace triqs::mesh;
 
   measure_G_tau_worm::measure_G_tau_worm(qmc_data const &data, wl_data& data_wl,int n_tau, gf_struct_t const &gf_struct, container_set_t &results)
-     : data(data), data_wl(data_wl), average_sign(0) {
+     : data(data), data_wl(data_wl), average_sign_Z(0) {
     results.G_tau_accum = block_gf<imtime, G_target_t>({data.config.beta(), Fermion, n_tau}, gf_struct);
     G_tau.rebind(*results.G_tau_accum);
     G_tau() = 0.0;
 
     results.asymmetry_G_tau = block_gf{G_tau};
     asymmetry_G_tau.rebind(*results.asymmetry_G_tau);
-    average_visit=0;
+    average_visit_Z=0;
+    average_visit_Gup=0;
+    average_visit_Gdwn=0;
+    average_sign_Z = 0;
+    average_sign_Gup = 0;
+    average_sign_Gdwn = 0;
   }
 
   void measure_G_tau_worm::accumulate(mc_weight_t s) {
@@ -53,29 +58,37 @@ namespace triqs_cthyb {
 */
     if(!data_wl.no_worm())
     {
-    //average_sign += s;
-    //average_visit += 1;
         auto block_idx = data_wl.get_block_index(0); 
-        // beta-periodicity is implicit in the argument, just fix the sign properly
+   	if(block_idx==0) {average_sign_Gup += s; average_visit_Gup += 1;}
+	else {average_sign_Gdwn += s; average_visit_Gdwn += 1;}
+   	// beta-periodicity is implicit in the argument, just fix the sign properly
         auto val    = (data_wl.get_time_dag(0) >= data_wl.get_time(0) ? s : -s);
         double dtau = double(data_wl.get_time_dag(0) - data_wl.get_time(0) );
         G_tau[block_idx][closest_mesh_pt(dtau)] += val;
     }
     else
     {
-    average_sign += s;
-    average_visit += 1;
+    average_sign_Z += s;
+    average_visit_Z += 1;
     }
   }
 
   void measure_G_tau_worm::collect_results(mpi::communicator const &c) {
 
     G_tau        = mpi::all_reduce(G_tau, c);
-    average_sign = mpi::all_reduce(average_sign, c);
+    average_sign_Z = mpi::all_reduce(average_sign_Z, c);
+    average_sign_Gup = mpi::all_reduce(average_sign_Gup, c);
+    average_sign_Gdwn = mpi::all_reduce(average_sign_Gdwn, c);
 
+    average_visit_Z = mpi::all_reduce(average_visit_Z, c);
+    average_visit_Gup = mpi::all_reduce(average_visit_Gup, c);
+    average_visit_Gdwn = mpi::all_reduce(average_visit_Gdwn, c);
+
+    int cnt = 0;
     for (auto &G_tau_block : G_tau) {
       double beta = G_tau_block.mesh().domain().beta;
-      G_tau_block /= -real(average_sign) * beta * G_tau_block.mesh().delta();
+      G_tau_block /= -real(average_sign_Z) * beta * G_tau_block.mesh().delta();
+      G_tau_block /= data_wl.get_mu_G_space(cnt);
 
       // Multiply first and last bins by 2 to account for full bins
       int last = G_tau_block.mesh().size() - 1;
@@ -88,9 +101,13 @@ namespace triqs_cthyb {
         std::cerr << "WARNING: Tau discontinuity of G_tau deviates appreciably from -1\n     .... max_element |g(0) + g(beta) + 1| = " << d << "\n";
 
       G_tau_block[last] = -1. - G_tau_block[0]; // Enforce 1/iw discontinuity (nb. matrix eq.)
+
+      //cnt +=1;
     }
 
-    std::cout<<"Sign Z in worm meas: "<<average_sign<<" and num vistt Z : "<<average_visit<<" with average: "<<double(average_sign/double(average_visit))<<std::endl;
+    std::cout<<"Sign Z in worm meas: "<<average_sign_Z<<" and num vistt Z : "<<average_visit_Z<<" with average: "<<double(average_sign_Z/double(average_visit_Z))<<std::endl;
+    std::cout<<"Sign Gup in worm meas: "<<average_sign_Gup<<" and num vistt Gup : "<<average_visit_Gup<<" with average: "<<double(average_sign_Gup/double(average_visit_Gup))<<std::endl;
+    std::cout<<"Sign Gdwn in worm meas: "<<average_sign_Gdwn<<" and num vistt Gdwn : "<<average_visit_Gdwn<<" with average: "<<double(average_sign_Gdwn/double(average_visit_Gdwn))<<std::endl;
 
     // We enforce the fundamental Green function property G(tau)[i,j] = G(tau)*[j,i]
     // and store the symmetry violation separately

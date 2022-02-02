@@ -274,7 +274,7 @@ namespace triqs_cthyb {
     auto qmc =
        mc_tools::mc_generic<mc_weight_t>(params.random_name, params.random_seed, params.verbosity);
 
-    wl_data data_wl(params, qmc.get_rng());
+    wl_data data_wl(params, qmc.get_rng(),_Delta_tau.size());
 
     // --------------------------------------------------------------------------
     // Moves

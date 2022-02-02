@@ -13,9 +13,10 @@ namespace triqs_cthyb {
       //std::vector<std::pair<time_pt, op_desc>> opworm, opworm_dag; 
       mc_tools::random_generator &rng; 
       solve_parameters_t& params;
+      int block_num;
       double cutoff = 5; // %5 tolerance
  
-    enum list_space : int  { Z, G1, G2 };
+    enum list_space : int  { Z, G10, G11, G2 };
     struct worm_space {
 
         worm_space() : Nvisit(0), Vj(1.) {}
@@ -28,10 +29,11 @@ namespace triqs_cthyb {
     list_space current_space;
 
 
-      wl_data(solve_parameters_t & params, mc_tools::random_generator &rng) : params(params), rng(rng) {
+      wl_data(solve_parameters_t & params, mc_tools::random_generator &rng, int block_num) : params(params), rng(rng), block_num(block_num) {
       
       WS.insert({Z,worm_space(0,1)});
-      if(params.measure_G_tau) WS.insert({G1,worm_space(0,1)});
+      if(params.measure_G_tau) WS.insert({G10,worm_space(0,1)});
+      //if(params.measure_G_tau && block_num>1) WS.insert({G11,worm_space(0,1)});
       if(params.measure_G2_tau) WS.insert({G2,worm_space(0,1)});
 
 
@@ -79,7 +81,12 @@ namespace triqs_cthyb {
     void update_current_space(){
     
     if(no_worm()) current_space = Z;
-    else if(size_worm()==1 && size_worm_dag()==1) current_space = G1;
+    else if(size_worm()==1 && size_worm_dag()==1) 
+    {
+      //current_space = get_block_index(0)==0 ? G10 : G11; 
+      current_space = G10; 
+    }
+
     else if(size_worm()==2 && size_worm_dag()==2) current_space = G2;
    
     //std::cout<<"Current space: "<<current_space<<" "<<WS[current_space].Vj<<std::endl;
@@ -122,6 +129,13 @@ namespace triqs_cthyb {
 
     double get_mu_space() {
       if(params.wang_landau_cycle) return WS[Z].Vj/WS[current_space].Vj;
+      else return 1.;
+    }
+    
+    double get_mu_G_space(int index) {
+      auto G = G10; 
+      //auto G = index==0 ? G10 : G11; 
+      if(params.wang_landau_cycle) return WS[Z].Vj/WS[G].Vj;
       else return 1.;
     }
 

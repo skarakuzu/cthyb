@@ -44,10 +44,14 @@ namespace triqs_cthyb {
     private:
     qmc_data const &data;
     wl_data  &data_wl;
-    mc_weight_t average_sign;
+    mc_weight_t average_sign_Z;
+    mc_weight_t average_sign_Gup;
+    mc_weight_t average_sign_Gdwn;
     G_tau_G_target_t::view_type G_tau;
     G_tau_G_target_t::view_type asymmetry_G_tau;
-    int average_visit;
+    int average_visit_Z;
+    int average_visit_Gup;
+    int average_visit_Gdwn;
   };
 
 } // namespace triqs_cthyb
