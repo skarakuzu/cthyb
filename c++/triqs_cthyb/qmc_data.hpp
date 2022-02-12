@@ -24,6 +24,8 @@
 #include <triqs/mesh.hpp>
 #include <triqs/det_manip.hpp>
 
+#include "./wl_data.hpp"
+
 namespace triqs_cthyb {
   using namespace triqs::gfs;
   using namespace triqs::mesh;
@@ -140,7 +142,95 @@ namespace triqs_cthyb {
       old_sign     = current_sign;
       current_sign = (s % 2 == 0 ? 1 : -1);
     }
+
+/* well I am just trying a replica fucntion */    
+    void update_sign(int worm_block_index) {
+
+      int s             = 0;
+      size_t num_blocks = dets.size();
+      std::vector<int> n_op_with_a_equal_to(num_blocks, 0), n_ndag_op_with_a_equal_to(num_blocks, 0);
+
+      // In this first part we compute the sign to bring the configuration to
+      // d^_1 d^_1 d^_1 ... d_1 d_1 d_1   d^_2 d^_2 ... d_2 d_2   ...   d^_n .. d_n
+
+      // loop over the operators "op" in the trace (right to left)
+      for (auto const &op : config) {
+
+        // how many operators with an 'a' larger than "op" are there on the left of "op"?
+        for (int a = op.second.block_index + 1; a < num_blocks; ++a) s += n_op_with_a_equal_to[a];
+        n_op_with_a_equal_to[op.second.block_index]++;
+
+        // if "op" is not a dagger how many operators of the same a but with a dagger are there on his right?
+        if (op.second.dagger)
+          s += n_ndag_op_with_a_equal_to[op.second.block_index];
+        else
+          n_ndag_op_with_a_equal_to[op.second.block_index]++;
+      }
+
+      // Now we compute the sign to bring the configuration to
+      // d_1 d^_1 d_1 d^_1 ... d_1 d^_1   ...   d_n d^_n ... d_n d^_n
+      for (int block_index = 0; block_index < num_blocks; block_index++) {
+        int n = dets[block_index].size();
+	if(block_index == worm_block_index) n +=1;
+        s += n * (n + 1) / 2;
+      }
+
+      old_sign     = current_sign;
+      current_sign = (s % 2 == 0 ? 1 : -1);
+    }
+    
+    void update_my_sign(wl_data & my_data) {
+    
+      int s             = 0;
+      size_t num_blocks = dets.size();
+      std::vector<int> n_op_with_a_equal_to(num_blocks, 0), n_ndag_op_with_a_equal_to(num_blocks, 0);
+
+      // In this first part we compute the sign to bring the configuration to
+      // d^_1 d^_1 d^_1 ... d_1 d_1 d_1   d^_2 d^_2 ... d_2 d_2   ...   d^_n .. d_n
+
+      // loop over the operators "op" in the trace (right to left)
+      for (auto const &op : config) {
+
+        // how many operators with an 'a' larger than "op" are there on the left of "op"?
+        for (int a = op.second.block_index + 1; a < num_blocks; ++a) s += n_op_with_a_equal_to[a];
+        n_op_with_a_equal_to[op.second.block_index]++;
+
+        // if "op" is not a dagger how many operators of the same a but with a dagger are there on his right?
+        if (op.second.dagger)
+          s += n_ndag_op_with_a_equal_to[op.second.block_index];
+        else
+          n_ndag_op_with_a_equal_to[op.second.block_index]++;
+      }
+
+      // Now we compute the sign to bring the configuration to
+      // d_1 d^_1 d_1 d^_1 ... d_1 d^_1   ...   d_n d^_n ... d_n d^_n
+      for (int block_index = 0; block_index < num_blocks; block_index++) {
+        int n = dets[block_index].size();
+	if(block_index == my_data.get_block_index(0)) n +=1;
+        s += n * (n + 1) / 2;
+      }
+
+      int i=0;
+      for (int iworm=0; iworm<my_data.size_worm(); iworm++)
+      {
+	std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time(iworm)); if (element.second.block_index == my_data.get_block_index(iworm) ) ++i; });
+	std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time_dag(iworm)); if (element.second.block_index == my_data.get_block_index_dag(iworm) ) ++i; });
+	//std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time_dag(iworm)); if (element.second.dagger  && element.second.block_index == my_data.get_block_index_dag(iworm) ) ++i; });
+	//std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time_dag(iworm)); ++i;});
+
+        
+      }
+ 
+      //std::cout<<"i found as : "<<i<<" config.size : "<<config.size()<<std::endl;
+      old_sign     = current_sign;
+      //current_sign = (s % 2 == 0 ? 1 : -1);
+      current_sign = ((s+i) % 2 == 0 ? 1 : -1);
+    }
+
+
   };
+
+
 
   //--------- DEBUG ---------
 

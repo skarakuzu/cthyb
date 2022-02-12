@@ -194,7 +194,7 @@ namespace triqs_cthyb {
 #endif
     data_wl.update_current_space();
     data_wl.update_mu_space();
-    //if(new_atomic_weight!=0.) data_wl.update_mu_space();
+    data_wl.update_visit_space();
 
     return data.current_sign / data.old_sign;
   }
@@ -219,6 +219,6 @@ namespace triqs_cthyb {
 #endif
     data_wl.update_current_space();
     data_wl.update_mu_space();
-    //if(new_atomic_weight!=0.) data_wl.update_mu_space();
+    data_wl.update_visit_space();
   }
 }

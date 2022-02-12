@@ -164,6 +164,7 @@ namespace triqs_cthyb {
 
     }
 
+    p_yee = -1;
 
     // computation of the new trace after insertion
     std::tie(new_atomic_weight, new_atomic_reweighting) = data.imp_trace.compute(p_yee, random_number);
@@ -230,12 +231,15 @@ namespace triqs_cthyb {
     data_wl.insert_worm(tau2, op2);
     }
 */
-    //if(yes_worm) data_wl.update_mu_space();
+    data_wl.update_current_space();
     data_wl.update_mu_space();
+    data_wl.update_visit_space();
     
     // insert in the determinant
     if(!yes_worm) data.dets[block_index].complete_operation();
-    data.update_sign();
+    //data.update_sign();
+    if(data_wl.no_worm()) data.update_sign();
+    else data.update_my_sign(data_wl);
     data.atomic_weight      = new_atomic_weight;
     data.atomic_reweighting = new_atomic_reweighting;
     if (histo_accepted && !yes_worm) *histo_accepted << dtau;
@@ -243,8 +247,9 @@ namespace triqs_cthyb {
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_insert_c_cdag accepted" << std::endl;
     std::cerr << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    if(!yes_worm) check_det_sequence(data.dets[block_index], config.get_id());
+    check_det_sequence(data.dets[block_index], config.get_id());
 #endif
+//    check_det_sequence(data.dets[block_index], config.get_id());
 
     return data.current_sign / data.old_sign;
   }
@@ -255,7 +260,7 @@ namespace triqs_cthyb {
     data.imp_trace.cancel_insert();
     if(!yes_worm) data.dets[block_index].reject_last_try();
     
-    if(yes_worm)
+    if(yes_worm && !data_wl.no_worm())
     {
       //std::cout<<"HERE deleting rejected worm"<<std::endl;
     data_wl.erase_worm_dag(0);
@@ -263,13 +268,14 @@ namespace triqs_cthyb {
 
     }
     data_wl.update_current_space();
-    //if(new_atomic_weight!=0.) data_wl.update_mu_space();
     data_wl.update_mu_space();
+    data_wl.update_visit_space();
 
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_insert_c_cdag rejected" << std::endl;
     std::cerr << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    if(!yes_worm) check_det_sequence(data.dets[block_index], config.get_id());
+    check_det_sequence(data.dets[block_index], config.get_id());
 #endif
+//    check_det_sequence(data.dets[block_index], config.get_id());
   }
 }

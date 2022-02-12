@@ -14,7 +14,7 @@ namespace triqs_cthyb {
       mc_tools::random_generator &rng; 
       solve_parameters_t& params;
       int block_num;
-      double cutoff = 5; // %5 tolerance
+      double cutoff = 10; // %5 tolerance
  
     enum list_space : int  { Z, G10, G11, G2 };
     struct worm_space {
@@ -33,7 +33,7 @@ namespace triqs_cthyb {
       
       WS.insert({Z,worm_space(0,1)});
       if(params.measure_G_tau) WS.insert({G10,worm_space(0,1)});
-      //if(params.measure_G_tau && block_num>1) WS.insert({G11,worm_space(0,1)});
+      if(params.measure_G_tau && block_num>1) WS.insert({G11,worm_space(0,1)});
       if(params.measure_G2_tau) WS.insert({G2,worm_space(0,1)});
 
 
@@ -83,8 +83,8 @@ namespace triqs_cthyb {
     if(no_worm()) current_space = Z;
     else if(size_worm()==1 && size_worm_dag()==1) 
     {
-      //current_space = get_block_index(0)==0 ? G10 : G11; 
-      current_space = G10; 
+      current_space = get_block_index(0)==0 ? G10 : G11; 
+      //current_space = G10; 
     }
 
     else if(size_worm()==2 && size_worm_dag()==2) current_space = G2;
@@ -94,27 +94,38 @@ namespace triqs_cthyb {
     }
 
     void update_mu_space(){
- 
     
     if(params.wang_landau_cycle)
     {
     WS[current_space].Vj *= params.wang_landau_lambda; 
-    WS[current_space].Nvisit += 1; 
+    //WS[current_space].Nvisit += 1; 
     }
     
     double save_Vj = WS[Z].Vj;
-    for (auto it = WS.begin(); it != WS.end(); ++it) it->second.Vj /= save_Vj; 
-
+    //for (auto it = WS.begin(); it != WS.end(); ++it) it->second.Vj /= save_Vj; 
+    //for (auto &x : WS) x.second.Vj /= save_Vj;
+    for (auto &[space, weight] : WS) weight.Vj /= save_Vj;
     }
 
+    void update_visit_space(){
+    
+    if(params.wang_landau_cycle)
+    {
+    WS[current_space].Nvisit += 1; 
+    }
+    } 
 
     void reset_space_visit(){
     double save_Vj = WS[Z].Vj;
+    /*
     for (auto it = WS.begin(); it != WS.end(); ++it)
     {
      it->second.Nvisit = 0; 
      it->second.Vj /= save_Vj; 
     }	
+    */
+
+    for (auto &[space, weight] : WS) { weight.Nvisit = 0; weight.Vj /= save_Vj;}
     
     //params.wang_landau_lambda = sqrt(params.wang_landau_lambda);
 
@@ -142,14 +153,24 @@ namespace triqs_cthyb {
     bool stop_cycle()
     {
     bool res;
+    
     for (auto it = WS.begin(); it != WS.end(); ++it)
     {
     res = false;
-    if((abs(WS[Z].Nvisit - it->second.Nvisit) < WS[Z].Nvisit*cutoff/100. ) && params.wang_landau_lambda <=1) res = true; 
+    if((abs(WS[Z].Nvisit - it->second.Nvisit) < WS[Z].Nvisit*cutoff/100. ) && params.wang_landau_lambda <=1.000000001) 
+    {
+     res = true; 
+     params.wang_landau_lambda = 1.0;
+    }
     }	
+    
+
+//    return std::all_of(WS.begin(), WS.end(), [visit_z=WS[Z].Nvisit, &cutoff, &params, this] (auto & x) {return ((abs(visit_z - x.second.Nvisit) < visit_z*cutoff/100. ) && params.wang_landau_lambda <=1); });
 
     return res;
     }
+
+
 
     };
 

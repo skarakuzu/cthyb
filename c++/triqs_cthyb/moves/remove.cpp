@@ -141,7 +141,8 @@ namespace triqs_cthyb {
     dtau = double(tau2 - tau1);
     int block_index_worm_dag = data_wl.get_block_index_dag(0);
     int block_index_worm = data_wl.get_block_index(0);
-    
+
+    if (block_index_worm != block_index) return 0;   
     int num_c_dag = data.imp_trace.try_delete_worm(tau1, block_index_worm_dag, true);
     int num_c = data.imp_trace.try_delete_worm(tau2, block_index_worm, false);
    
@@ -165,6 +166,7 @@ namespace triqs_cthyb {
     p_yee = std::abs(det_ratio / t_ratio / data.atomic_weight);
     }
 
+    p_yee =-1.;
 
     // recompute the atomic_weight
     std::tie(new_atomic_weight, new_atomic_reweighting) = data.imp_trace.compute(p_yee, random_number);
@@ -234,10 +236,12 @@ namespace triqs_cthyb {
     }
     data_wl.update_current_space();
     data_wl.update_mu_space();
+    data_wl.update_visit_space();
 
     // remove from the determinants
     if(!yes_worm) data.dets[block_index].complete_operation();
-    data.update_sign();
+    if(data_wl.no_worm()) data.update_sign();
+    else data.update_my_sign(data_wl);
     data.atomic_weight      = new_atomic_weight;
     data.atomic_reweighting = new_atomic_reweighting;
     if (histo_accepted && !yes_worm) *histo_accepted << dtau;
@@ -245,8 +249,9 @@ namespace triqs_cthyb {
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_remove_c_cdag accepted" << std::endl;
     std::cerr << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    if(!yes_worm) check_det_sequence(data.dets[block_index], config.get_id());
+    check_det_sequence(data.dets[block_index], config.get_id());
 #endif
+//    check_det_sequence(data.dets[block_index], config.get_id());
 
     return data.current_sign / data.old_sign;
   }
@@ -256,16 +261,16 @@ namespace triqs_cthyb {
     config.finalize();
     data.imp_trace.cancel_delete();
     if(!yes_worm) data.dets[block_index].reject_last_try();
-   
+
     data_wl.update_current_space();
     data_wl.update_mu_space();
-    //if(new_atomic_weight!=0.) data_wl.update_mu_space();
-    //if(yes_worm) data_wl.update_mu_space();
+    data_wl.update_visit_space();
 
 #ifdef EXT_DEBUG
     std::cerr << "* Move move_remove_c_cdag rejected" << std::endl;
     std::cerr << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << std::endl;
-    if(!yes_worm) check_det_sequence(data.dets[block_index], config.get_id());
+    check_det_sequence(data.dets[block_index], config.get_id());
 #endif
+//    check_det_sequence(data.dets[block_index], config.get_id());
   }
 }

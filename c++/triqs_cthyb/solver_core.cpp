@@ -457,10 +457,10 @@ namespace triqs_cthyb {
 
     if(params.wang_landau_cycle)
     {
-      int numcycle = 0;
-      while(!data_wl.stop_cycle())
-      //for(int i=0; i<4; i++)
-      {
+    int numcycle = 0;
+    while(!data_wl.stop_cycle())
+    //for(int i=0; i<1; i++)
+    {
     data_wl.reset_space_visit();
 
     std::cout<<std::setprecision(15)<<"Wang Landau Cycle number: "<<numcycle<<" with lambda: "<<params.wang_landau_lambda<<std::endl;
@@ -469,13 +469,14 @@ namespace triqs_cthyb {
        qmc.warmup(params.n_warmup_cycles, params.length_cycle,
                                  triqs::utility::clock_callback(params.max_time));
 
+
+
     data_wl.print_space_visit();
     numcycle +=1;
     
     params.wang_landau_lambda = sqrt(params.wang_landau_lambda);
-      }
+     }
 
-     //params.wang_landau_lambda = 1.0;
 
     _solve_status =
        qmc.accumulate(params.n_cycles, params.length_cycle,

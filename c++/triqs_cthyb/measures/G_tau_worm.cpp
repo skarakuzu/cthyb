@@ -62,8 +62,8 @@ namespace triqs_cthyb {
    	if(block_idx==0) {average_sign_Gup += s; average_visit_Gup += 1;}
 	else {average_sign_Gdwn += s; average_visit_Gdwn += 1;}
    	// beta-periodicity is implicit in the argument, just fix the sign properly
-        auto val    = (data_wl.get_time_dag(0) >= data_wl.get_time(0) ? s : -s);
-        double dtau = double(data_wl.get_time_dag(0) - data_wl.get_time(0) );
+        auto val    = (data_wl.get_time(0) >= data_wl.get_time_dag(0) ? s : -s);
+        double dtau = double(data_wl.get_time(0) - data_wl.get_time_dag(0) );
         G_tau[block_idx][closest_mesh_pt(dtau)] += val;
     }
     else
@@ -102,7 +102,7 @@ namespace triqs_cthyb {
 
       G_tau_block[last] = -1. - G_tau_block[0]; // Enforce 1/iw discontinuity (nb. matrix eq.)
 
-      //cnt +=1;
+      cnt +=1;
     }
 
     std::cout<<"Sign Z in worm meas: "<<average_sign_Z<<" and num vistt Z : "<<average_visit_Z<<" with average: "<<double(average_sign_Z/double(average_visit_Z))<<std::endl;

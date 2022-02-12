@@ -17,58 +17,43 @@ from triqs.plot.mpl_interface import plt, oplot
 from matplotlib.backends.backend_pdf import PdfPages
 
 import os
-#if not os.path.exists('results_one_band'):
-#      os.makedirs('results_one_band')
 
-# Parameters of the model
-t = 1.0
-beta = 5.0
-n_loops = 1
+# Parameters
+D, V, U = 1.0, 0.7, 8.0
+e_f, beta = -4.0, 4
+#e_f, beta = -U/2.0, 10
 
-# Construct the impurity solver
-S = Solver(beta = beta, gf_struct = [('up',[0]), ('down',[0])] )
+# Construct the impurity solver with the inverse temperature
+# and the structure of the Green's functions
+S = Solver(beta = beta, gf_struct = [ ('up',[0]), ('down',[0]) ])
 
-# I run for several values of U
-#for U in np.arange(1.0, 13.0):
-#for U in np.arange(10.0, 11.0):
-for U in np.arange(10.0, 11.0):
-      print('U =', U)
+# Initialize the non-interacting Green's function S.G0_iw
+for name, g0 in S.G0_iw: g0 << inverse(iOmega_n - e_f - V**2 * Wilson(D))
 
-      # This is a first guess for G
-      S.G_iw << SemiCircular(2*t)
+# Run the solver. The results will be in S.G_tau, S.G_iw and S.G_l
+S.solve(h_int = U * n('up',0) * n('down',0),   # Local Hamiltonian 
+n_cycles  = 50000000,                           # Number of QMC cycles
+length_cycle=50,
+move_double=False,
+move_shift=False,
+wang_landau_cycle  = True, 
+wang_landau_lambda  = 1.1000,
+n_warmup_cycles = 200000,                      # Warmup cycles
+performance_analysis = True,
+measure_G2_tau=False,
+)
 
-      # DMFT loop with self-consistency
-      for i in range(n_loops):
-          print("\n\nIteration = %i / %i" % (i+1, n_loops))
-          # Symmetrize the Green's function and use self-consistency
-          g = 0.5 * ( S.G_iw['up'] + S.G_iw['down'] )
-          for name, g0 in S.G0_iw:
-              g0 << inverse( iOmega_n + U/2.0 - t**2 * g )
-          # Solve the impurity problem
-          S.solve(h_int = U * n('up',0) * n('down',0),   # Local Hamiltonian 
-	      n_cycles  = 0,                           # Number of QMC cycles
-          length_cycle=50,
-          move_double=False,
-          move_shift=False,
-	      wang_landau_cycle  = True, 
-	      wang_landau_lambda  = 1.01566,
-	      n_warmup_cycles = 100,                      # Warmup cycles
-          performance_analysis = True,
-          measure_G2_tau=False,
-	  )
-#          with HDFArchive("results_one_band/half-U%.2f.h5"%U) as A:
-#              A['G-%i'%i] = S.G_iw
-#              A['Sigma-%i'%i] = S.Sigma_iw
-    
-      arch = HDFArchive('asymm_bath.h5','w')
-      arch.create_group('epsilon_' + str(U))
-      gr = arch['epsilon_' + str(U)]
-      gr['G_tau'] = S.G_tau
-      gr['beta'] = beta
-      gr['U'] = U
-      #gr['perturbation_order'] = S.perturbation_order
-      #gr['perturbation_order_total'] = S.perturbation_order_total
-      gr['performance_analysis'] = S.performance_analysis
+arch = HDFArchive('singleband_hubbard.h5','w')
+arch.create_group('CTHYB')
+gr = arch['CTHYB']
+gr['G_tau'] = S.G_tau
+gr['G_tau_accum'] = S.G_tau_accum
+gr['asymmetry_G_tau'] = S.asymmetry_G_tau
+gr['beta'] = beta
+gr['U'] = U
+#gr['perturbation_order'] = S.perturbation_order
+#gr['perturbation_order_total'] = S.perturbation_order_total
+gr['performance_analysis'] = S.performance_analysis
 
 
 pp = PdfPages('G_asymm_bath.pdf')
@@ -95,25 +80,25 @@ for e_group_name in arch:
 
     histo = e_group['performance_analysis']
     print("Insertion statistics: ")
-    plt.subplot(6,1,1)
+    plt.subplot(4,1,1)
     proposed = histo['insert_length_proposed_up'] + histo['insert_length_proposed_down']
     accepted = histo['insert_length_accepted_up'] + histo['insert_length_accepted_down']
     plot_histos("Insertion",{"Proposed" : proposed, "Accepted" : accepted},sumed1)
     # Move remove
     print("Removal statistics: ")
-    plt.subplot(6,1,2)
+    plt.subplot(4,1,2)
     proposed = histo['remove_length_proposed_up'] + histo['remove_length_proposed_down']
     accepted = histo['remove_length_accepted_up'] + histo['remove_length_accepted_down']
     plot_histos("Removal",{"Proposed" : proposed, "Accepted" : accepted},sumed2)
     # worm move insert
     print("Worm Insertion statistics: ")
-    plt.subplot(6,1,3)
+    plt.subplot(4,1,3)
     proposed = histo['worm_insert_length_proposed_up'] + histo['worm_insert_length_proposed_down']
     accepted = histo['worm_insert_length_accepted_up'] + histo['worm_insert_length_accepted_down']
     plot_histos("Worm Insertion",{"Proposed" : proposed, "Accepted" : accepted},sumed3)
     # worm Move remove
     print("Worm Removal statistics: ")
-    plt.subplot(6,1,4)
+    plt.subplot(4,1,4)
     proposed = histo['worm_remove_length_proposed_up'] + histo['worm_remove_length_proposed_down'] 
     accepted = histo['worm_remove_length_accepted_up'] + histo['worm_remove_length_accepted_down'] 
     plot_histos("Worm Removal",{"Proposed" : proposed, "Accepted" : accepted},sumed4)
@@ -134,22 +119,3 @@ for e_group_name in arch:
 
     pp.savefig(plt.gcf())
 pp.close()
-
-#          # Save iteration in archive
-#          with HDFArchive("results_one_band/half-U%.2f.h5"%U) as A:
-#              A['G-%i'%i] = S.G_iw
-#              A['Sigma-%i'%i] = S.Sigma_iw
-		    
-
-#from triqs.plot.mpl_interface import oplot, oplotr, plt
-
-#print(S._performance_analysis)
-#print(S.histo_proposed)
-#oplot(S.perturbation_order_total, label='total')
-#for b in S.perturbation_order:
-#    oplot(S.perturbation_order[b], label='block {:s}'.format(b))
-
-#plt.semilogy([], [])
-#plt.xlim([0, 40]);
-#plt.show()
-
