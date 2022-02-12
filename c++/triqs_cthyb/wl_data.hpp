@@ -45,6 +45,7 @@ namespace triqs_cthyb {
     
     bool chose_insert_worm() 
     {
+     
     if (no_worm()) return true;
     else if(WS.contains(G2) && size_worm()==1) 
     {
@@ -55,6 +56,10 @@ namespace triqs_cthyb {
 
     }
     else return false;
+	
+    
+//    int rndn = rng(2);
+//    return rndn==1 ? 1 : 0;
 
     }
 

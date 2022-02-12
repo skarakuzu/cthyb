@@ -146,6 +146,7 @@ namespace triqs_cthyb {
     else
     {
 
+    if (!data_wl.no_worm()) return 0;   
 //      std::cout<<"Inside worm insertion in insert.cpp"<<std::endl;
     det_ratio= mc_weight_t(1.0);
     

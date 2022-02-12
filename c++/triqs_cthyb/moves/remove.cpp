@@ -135,6 +135,7 @@ namespace triqs_cthyb {
    /* my changes */ 
     data_wl.update_current_space();
     
+    if (data_wl.no_worm()) return 0;   
     
     tau1 = data_wl.get_time_dag(0);
     tau2 = data_wl.get_time(0);
@@ -143,6 +144,8 @@ namespace triqs_cthyb {
     int block_index_worm = data_wl.get_block_index(0);
 
     if (block_index_worm != block_index) return 0;   
+    
+    
     int num_c_dag = data.imp_trace.try_delete_worm(tau1, block_index_worm_dag, true);
     int num_c = data.imp_trace.try_delete_worm(tau2, block_index_worm, false);
    
