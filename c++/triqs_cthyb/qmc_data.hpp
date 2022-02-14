@@ -189,8 +189,14 @@ namespace triqs_cthyb {
       // d^_1 d^_1 d^_1 ... d_1 d_1 d_1   d^_2 d^_2 ... d_2 d_2   ...   d^_n .. d_n
 
       // loop over the operators "op" in the trace (right to left)
+
+
+      int cnt = 0;
+      int i=0;
       for (auto const &op : config) {
 
+	if((double(op.first) != double(my_data.get_time(0))) && (double(op.first) != double(my_data.get_time_dag(0))))
+	{
         // how many operators with an 'a' larger than "op" are there on the left of "op"?
         for (int a = op.second.block_index + 1; a < num_blocks; ++a) s += n_op_with_a_equal_to[a];
         n_op_with_a_equal_to[op.second.block_index]++;
@@ -200,26 +206,37 @@ namespace triqs_cthyb {
           s += n_ndag_op_with_a_equal_to[op.second.block_index];
         else
           n_ndag_op_with_a_equal_to[op.second.block_index]++;
+	}
+	else
+	{
+	  i += cnt;
+	}
+
+	cnt +=1;
       }
 
       // Now we compute the sign to bring the configuration to
       // d_1 d^_1 d_1 d^_1 ... d_1 d^_1   ...   d_n d^_n ... d_n d^_n
       for (int block_index = 0; block_index < num_blocks; block_index++) {
         int n = dets[block_index].size();
-	if(block_index == my_data.get_block_index(0)) n +=1;
+	//if(block_index == my_data.get_block_index(0)) n +=1;
         s += n * (n + 1) / 2;
       }
-
-      int i=0;
+/*
+      
       for (int iworm=0; iworm<my_data.size_worm(); iworm++)
       {
-	std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time(iworm)); if (element.second.block_index == my_data.get_block_index(iworm) ) ++i; });
-	std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time_dag(iworm)); if (element.second.block_index == my_data.get_block_index_dag(iworm) ) ++i; });
-	//std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time_dag(iworm)); if (element.second.dagger  && element.second.block_index == my_data.get_block_index_dag(iworm) ) ++i; });
-	//std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time_dag(iworm)); ++i;});
+	//std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time(iworm)); if (element.second.block_index == my_data.get_block_index(iworm) ) ++i; });
+	//std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time_dag(iworm)); if (element.second.block_index == my_data.get_block_index_dag(iworm) ) ++i; });
+	std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time(iworm)); ++i;});
+	std::find_if(config.begin(), config.end(), [&](auto & element){ return double(element.first)==double(my_data.get_time_dag(iworm)); ++i;});
 
         
       }
+  */    
+      //i=0;
+	//i = 2*config.size() - i;
+        if(my_data.get_time(0) >= my_data.get_time_dag(0)) i+=1;
  
       //std::cout<<"i found as : "<<i<<" config.size : "<<config.size()<<std::endl;
       old_sign     = current_sign;
